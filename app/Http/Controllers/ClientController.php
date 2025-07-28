@@ -1,10 +1,14 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\ContactPerson;
 use App\Models\DeliveryAddress;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ClientsFullExport;
+use App\Imports\ClientsFullImport;
 
 class ClientController extends Controller
 {
@@ -27,7 +31,7 @@ class ClientController extends Controller
             'pvn_maksataja_numurs' => 'nullable|string',
             'juridiska_adrese' => 'nullable|string',
             'contact_persons.*.kontakt_personas_vards' => 'required|string',
-            'contact_persons.*.e-pasts' => 'nullable|email',
+            'contact_persons.*.e_pasts' => 'nullable|email',
             'contact_persons.*.telefons' => 'nullable|string',
             'delivery_addresses.*.piegades_adrese' => 'required|string',
         ]);
@@ -59,7 +63,7 @@ class ClientController extends Controller
 
     public function update(Request $request, Client $client)
     {
-            $validated = $request->validate([
+        $validated = $request->validate([
             'nosaukums' => 'required|string',
             'registracijas_numurs' => 'required|string|unique:clients,registracijas_numurs,' . $client->id,
             'pvn_maksataja_numurs' => 'nullable|string',
@@ -76,13 +80,10 @@ class ClientController extends Controller
 
         $client->update($validated);
 
-        // Handle contact persons
+        // Update contact persons
         $existingContactIds = $client->contactPersons()->pluck('id')->toArray();
         $submittedContactIds = collect($request->contact_persons)->pluck('id')->filter()->toArray();
-
-        // Delete removed contacts
-        $toDelete = array_diff($existingContactIds, $submittedContactIds);
-        $client->contactPersons()->whereIn('id', $toDelete)->delete();
+        $client->contactPersons()->whereIn('id', array_diff($existingContactIds, $submittedContactIds))->delete();
 
         foreach ($request->contact_persons ?? [] as $personData) {
             if (isset($personData['id'])) {
@@ -92,12 +93,10 @@ class ClientController extends Controller
             }
         }
 
-        // Handle delivery addresses
+        // Update delivery addresses
         $existingAddressIds = $client->deliveryAddresses()->pluck('id')->toArray();
         $submittedAddressIds = collect($request->delivery_addresses)->pluck('id')->filter()->toArray();
-
-        $toDeleteAddresses = array_diff($existingAddressIds, $submittedAddressIds);
-        $client->deliveryAddresses()->whereIn('id', $toDeleteAddresses)->delete();
+        $client->deliveryAddresses()->whereIn('id', array_diff($existingAddressIds, $submittedAddressIds))->delete();
 
         foreach ($request->delivery_addresses ?? [] as $addressData) {
             if (isset($addressData['id'])) {
@@ -114,5 +113,24 @@ class ClientController extends Controller
     {
         $client->delete();
         return redirect()->route('clients.index')->with('success', 'Client deleted.');
+    }
+
+    // ✅ Export full Excel (3 sheets: clients, contact persons, delivery addresses)
+    public function fullExport()
+    {
+        $timestamp = now()->format('Y_m_d_H_i_s');
+        return Excel::download(new ClientsFullExport, "clients_full_export_{$timestamp}.xlsx");
+    }
+
+    // ✅ Import full Excel (3 sheets into appropriate tables)
+    public function fullImport(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        Excel::import(new ClientsFullImport, $request->file('import_file'));
+
+        return redirect()->route('clients.index')->with('success', 'Clients, contact persons and delivery addresses imported successfully.');
     }
 }

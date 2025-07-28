@@ -10,6 +10,7 @@ class Client extends Model
     use HasFactory;
 
     protected $fillable = [
+        'id', // ✅ Add this line
         'nosaukums',
         'registracijas_numurs',
         'pvn_maksataja_numurs',
@@ -26,3 +27,4 @@ class Client extends Model
         return $this->hasMany(ContactPerson::class);
     }
 }
+

@@ -14,13 +14,16 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::resource('clients', ClientController::class);
-Route::resource('products', ProductController::class);
-Route::resource('users', UserController::class)->middleware('auth');
-
-
-
 Route::middleware('auth')->group(function () {
+    Route::get('/clients/full-export', [ClientController::class, 'fullExport'])->name('clients.fullExport');
+    Route::post('/clients/full-import', [ClientController::class, 'fullImport'])->name('clients.fullImport');
+    
+    Route::resource('clients', ClientController::class);
+    Route::resource('products', ProductController::class);
+    Route::resource('users', UserController::class);
+
+    
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
