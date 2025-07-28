@@ -17,6 +17,8 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/clients/full-export', [ClientController::class, 'fullExport'])->name('clients.fullExport');
     Route::post('/clients/full-import', [ClientController::class, 'fullImport'])->name('clients.fullImport');
+    Route::get('/products/export', [ProductController::class, 'export'])->name('products.export');
+    Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     
     Route::resource('clients', ClientController::class);
     Route::resource('products', ProductController::class);
