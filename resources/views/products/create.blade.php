@@ -47,17 +47,17 @@
                     </div>
 
                     <div>
-                        <label for="garums">Garums (cm)</label>
+                        <label for="garums">Garums (mm)</label>
                         <input type="number" step="0.01" name="garums" class="mt-1 block w-full" value="{{ old('garums') }}">
                     </div>
 
                     <div>
-                        <label for="platums">Platums (cm)</label>
+                        <label for="platums">Platums (mm)</label>
                         <input type="number" step="0.01" name="platums" class="mt-1 block w-full" value="{{ old('platums') }}">
                     </div>
 
                     <div>
-                        <label for="augstums">Augstums (cm)</label>
+                        <label for="augstums">Augstums (mm)</label>
                         <input type="number" step="0.01" name="augstums" class="mt-1 block w-full" value="{{ old('augstums') }}">
                     </div>
                 </div>

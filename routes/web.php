@@ -4,9 +4,10 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('/auth/login');
 });
 
 Route::get('/dashboard', function () {
@@ -15,6 +16,7 @@ Route::get('/dashboard', function () {
 
 Route::resource('clients', ClientController::class);
 Route::resource('products', ProductController::class);
+Route::resource('users', UserController::class)->middleware('auth');
 
 
 

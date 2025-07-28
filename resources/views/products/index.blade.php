@@ -18,9 +18,9 @@
                             <th class="border px-4 py-2">Daudzums noliktavā</th>
                             <th class="border px-4 py-2">Svars (kg)</th>
                             <th class="border px-4 py-2">Nom. grupas kods</th>
-                            <th class="border px-4 py-2">Garums (cm)</th>
-                            <th class="border px-4 py-2">Platums (cm)</th>
-                            <th class="border px-4 py-2">Augstums (cm)</th>
+                            <th class="border px-4 py-2">Garums (mm)</th>
+                            <th class="border px-4 py-2">Platums (mm)</th>
+                            <th class="border px-4 py-2">Augstums (mm)</th>
                             <th class="border px-4 py-2">Darbības</th>
                         </tr>
                     </thead>

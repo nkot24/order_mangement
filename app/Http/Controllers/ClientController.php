@@ -59,31 +59,52 @@ class ClientController extends Controller
 
     public function update(Request $request, Client $client)
     {
-        $validated = $request->validate([
+            $validated = $request->validate([
             'nosaukums' => 'required|string',
             'registracijas_numurs' => 'required|string|unique:clients,registracijas_numurs,' . $client->id,
             'pvn_maksataja_numurs' => 'nullable|string',
             'juridiska_adrese' => 'nullable|string',
+
             'contact_persons.*.id' => 'nullable|exists:contact_persons,id',
             'contact_persons.*.kontakt_personas_vards' => 'required|string',
-            'contact_persons.*.e-pasts' => 'nullable|email',
+            'contact_persons.*.e_pasts' => 'nullable|email',
             'contact_persons.*.telefons' => 'nullable|string',
+
             'delivery_addresses.*.id' => 'nullable|exists:delivery_addresses,id',
             'delivery_addresses.*.piegades_adrese' => 'required|string',
         ]);
 
         $client->update($validated);
 
-        // Update contact persons
-        $client->contactPersons()->delete();
-        foreach ($request->contact_persons ?? [] as $person) {
-            $client->contactPersons()->create($person);
+        // Handle contact persons
+        $existingContactIds = $client->contactPersons()->pluck('id')->toArray();
+        $submittedContactIds = collect($request->contact_persons)->pluck('id')->filter()->toArray();
+
+        // Delete removed contacts
+        $toDelete = array_diff($existingContactIds, $submittedContactIds);
+        $client->contactPersons()->whereIn('id', $toDelete)->delete();
+
+        foreach ($request->contact_persons ?? [] as $personData) {
+            if (isset($personData['id'])) {
+                $client->contactPersons()->where('id', $personData['id'])->update($personData);
+            } else {
+                $client->contactPersons()->create($personData);
+            }
         }
 
-        // Update delivery addresses
-        $client->deliveryAddresses()->delete();
-        foreach ($request->delivery_addresses ?? [] as $address) {
-            $client->deliveryAddresses()->create($address);
+        // Handle delivery addresses
+        $existingAddressIds = $client->deliveryAddresses()->pluck('id')->toArray();
+        $submittedAddressIds = collect($request->delivery_addresses)->pluck('id')->filter()->toArray();
+
+        $toDeleteAddresses = array_diff($existingAddressIds, $submittedAddressIds);
+        $client->deliveryAddresses()->whereIn('id', $toDeleteAddresses)->delete();
+
+        foreach ($request->delivery_addresses ?? [] as $addressData) {
+            if (isset($addressData['id'])) {
+                $client->deliveryAddresses()->where('id', $addressData['id'])->update($addressData);
+            } else {
+                $client->deliveryAddresses()->create($addressData);
+            }
         }
 
         return redirect()->route('clients.index')->with('success', 'Client updated successfully.');

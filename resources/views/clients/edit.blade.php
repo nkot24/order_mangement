@@ -54,7 +54,7 @@
 
                                     <x-input-label value="E-pasts" />
                                     <input name="contact_persons[{{ $i }}][e-pasts]" class="w-full border p-2 rounded mb-2"
-                                           value="{{ $cp->e_pasts }}" />
+                                           value="{{ $cp->{'e-pasts'} }}" />
 
                                     <x-input-label value="Telefons" />
                                     <input name="contact_persons[{{ $i }}][telefons]" class="w-full border p-2 rounded mb-2"
@@ -90,11 +90,10 @@
         </div>
     </div>
 
-    {{-- Reuse the same JS --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            let contactIndex = 0;
-            let addressIndex = 0;
+            let contactIndex = @json(count($client->contactPersons));
+            let addressIndex = @json(count($client->deliveryAddresses));
 
             document.getElementById('add-contact').addEventListener('click', function () {
                 const container = document.getElementById('contacts');
