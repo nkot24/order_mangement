@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\OrderController;
 
 Route::get('/', function () {
     return view('/auth/login');
@@ -22,7 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::get('users/export', [UserController::class, 'export'])->name('users.export');
     Route::post('users/import', [UserController::class, 'import'])->name('users.import');
 
-    
+    Route::resource('orders', OrderController::class);
     Route::resource('clients', ClientController::class);
     Route::resource('products', ProductController::class);
     Route::resource('users', UserController::class);
