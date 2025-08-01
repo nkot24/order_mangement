@@ -10,6 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
+        'pasutijuma_numurs',
         'datums',
         'client_id',
         'klients',
@@ -28,9 +29,10 @@ class Order extends Model
     protected static function booted()
     {
         static::created(function ($order) {
-            // Set pasutijuma_numurs like "2025-000001"
-            $order->pasutijuma_numurs = now()->year . '-' . str_pad($order->id, 6, '0', STR_PAD_LEFT);
-            $order->save();
+            if (empty($order->pasutijuma_numurs)) {
+                $order->pasutijuma_numurs = now()->year . '-' . str_pad($order->id, 6, '0', STR_PAD_LEFT);
+                $order->save();
+            }
         });
     }
 

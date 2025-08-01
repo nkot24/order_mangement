@@ -22,6 +22,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('users/export', [UserController::class, 'export'])->name('users.export');
     Route::post('users/import', [UserController::class, 'import'])->name('users.import');
+    Route::get('/orders/export', [OrderController::class, 'fullExport'])->name('orders.fullExport');
+    Route::post('/orders/import', [OrderController::class, 'fullImport'])->name('orders.fullImport');
 
     Route::resource('orders', OrderController::class);
     Route::resource('clients', ClientController::class);

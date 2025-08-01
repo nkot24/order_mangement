@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('pasutijuma_numurs')->nullable()->unique();
-            $table->date('datums')->default(DB::raw('CURRENT_DATE'));
+            $table->timestamp('datums')->useCurrent();
             $table->foreignId('client_id')->nullable()->constrained('clients')->onDelete('cascade');
             $table->string('klients')->nullable();
             $table->foreignId('products_id')->nullable()->constrained('products')->onDelete('cascade');

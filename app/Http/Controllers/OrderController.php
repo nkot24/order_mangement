@@ -6,6 +6,9 @@ use App\Models\Order;
 use App\Models\Client;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Exports\OrdersFullExport;
+use App\Imports\OrdersFullImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -25,38 +28,26 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'client_id'     => 'nullable|exists:clients,id',
-            'klients'       => 'nullable|string|max:255',
-            'products_id'   => 'nullable|exists:products,id',
-            'produkts'      => 'nullable|string|max:255',
-            'daudzums'      => 'required|integer|min:1',
+            'client_id'       => 'nullable|exists:clients,id',
+            'klients'         => 'nullable|string|max:255',
+            'products_id'     => 'nullable|exists:products,id',
+            'produkts'        => 'nullable|string|max:255',
+            'daudzums'        => 'required|integer|min:1',
             'izpildes_datums' => 'nullable|date',
-            'prioritāte'    => 'nullable|string',
-            'statuss'       => 'nullable|string',
-            'piezimes'      => 'nullable|string',
+            'prioritāte'      => 'nullable|string',
+            'statuss'         => 'nullable|string',
+            'piezimes'        => 'nullable|string',
         ]);
 
         $order = new Order();
 
-        $order->datums = now()->toDateString(); // auto date
+        $order->datums = now()->toDateString();
 
-        // Save selected or one-time client
-        if ($request->filled('client_id')) {
-            $order->client_id = $request->client_id;
-            $order->klients = null;
-        } else {
-            $order->client_id = null;
-            $order->klients = $request->klients;
-        }
+        $order->client_id = $request->client_id ?: null;
+        $order->klients = $request->client_id ? null : $request->klients;
 
-        // Save selected or one-time product
-        if ($request->filled('products_id')) {
-            $order->products_id = $request->products_id;
-            $order->produkts = null;
-        } else {
-            $order->products_id = null;
-            $order->produkts = $request->produkts;
-        }
+        $order->products_id = $request->products_id ?: null;
+        $order->produkts = $request->products_id ? null : $request->produkts;
 
         $order->daudzums = $request->daudzums;
         $order->izpildes_datums = $request->izpildes_datums;
@@ -64,11 +55,6 @@ class OrderController extends Controller
         $order->statuss = $request->statuss ?? 'nav nodots ražošanai';
         $order->piezimes = $request->piezimes;
 
-        // Save to get ID
-        $order->save();
-
-        // Generate pasutijuma_numurs like 2025-150
-        $order->pasutijuma_numurs = now()->year . '-' . $order->id;
         $order->save();
 
         return redirect()->route('orders.index')->with('success', 'Pasūtījums izveidots veiksmīgi!');
@@ -89,32 +75,22 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         $request->validate([
-            'client_id'     => 'nullable|exists:clients,id',
-            'klients'       => 'nullable|string|max:255',
-            'products_id'   => 'nullable|exists:products,id',
-            'produkts'      => 'nullable|string|max:255',
-            'daudzums'      => 'required|integer|min:1',
+            'client_id'       => 'nullable|exists:clients,id',
+            'klients'         => 'nullable|string|max:255',
+            'products_id'     => 'nullable|exists:products,id',
+            'produkts'        => 'nullable|string|max:255',
+            'daudzums'        => 'required|integer|min:1',
             'izpildes_datums' => 'nullable|date',
-            'prioritāte'    => 'nullable|string',
-            'statuss'       => 'nullable|string',
-            'piezimes'      => 'nullable|string',
+            'prioritāte'      => 'nullable|string',
+            'statuss'         => 'nullable|string',
+            'piezimes'        => 'nullable|string',
         ]);
 
-        if ($request->filled('client_id')) {
-            $order->client_id = $request->client_id;
-            $order->klients = null;
-        } else {
-            $order->client_id = null;
-            $order->klients = $request->klients;
-        }
+        $order->client_id = $request->client_id ?: null;
+        $order->klients = $request->client_id ? null : $request->klients;
 
-        if ($request->filled('products_id')) {
-            $order->products_id = $request->products_id;
-            $order->produkts = null;
-        } else {
-            $order->products_id = null;
-            $order->produkts = $request->produkts;
-        }
+        $order->products_id = $request->products_id ?: null;
+        $order->produkts = $request->products_id ? null : $request->produkts;
 
         $order->daudzums = $request->daudzums;
         $order->izpildes_datums = $request->izpildes_datums;
@@ -129,7 +105,23 @@ class OrderController extends Controller
 
     public function destroy(Order $order)
     {
-        $order->delete();
+        $order->forceDelete();
         return redirect()->route('orders.index')->with('success', 'Pasūtījums dzēsts veiksmīgi!');
+    }
+
+    public function fullExport()
+    {
+        return Excel::download(new OrdersFullExport, 'orders_full.xlsx');
+    }
+
+    public function fullImport(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv'
+        ]);
+
+        Excel::import(new OrdersFullImport, $request->file('file'));
+
+        return redirect()->route('orders.index')->with('success', 'Import pabeigts veiksmīgi!');
     }
 }
